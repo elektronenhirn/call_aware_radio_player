@@ -47,7 +47,7 @@ function playRadio() {
 # returns 0 when call ongoing
 function callOngoing() {
     REGEX=".*RUNNING"
-    pactl list short sources | grep -e "${REGEX}" > /dev/null
+    pactl list short sources | grep -e "${REGEX}" >/dev/null
     echo $?
 }
 
@@ -64,25 +64,24 @@ function selectRadioStation() {
     PS3='Select a radio station: '
 
     options=("${RADIO_STATION_NAME[1]}", "${RADIO_STATION_NAME[2]}", "${RADIO_STATION_NAME[3]}")
-    select opt in "${options[@]}"
-    do
+    select opt in "${options[@]}"; do
         case $REPLY in
-            1)
-                echo "→ Selected ${RADIO_STATION_NAME[1]}"
-                STREAMING_URL="${RADIO_STATION_URL[1]}"
-                break
-                ;;
-            2)
-                echo "→ Selected ${RADIO_STATION_NAME[2]}"
-                STREAMING_URL="${RADIO_STATION_URL[2]}"
-                break
-                ;;
-            3)
-                echo "→ Selected ${RADIO_STATION_NAME[3]}"
-                STREAMING_URL="${RADIO_STATION_URL[3]}"
-                break
-                ;;
-            *) echo "invalid option $REPLY";;
+        1)
+            echo "→ Selected ${RADIO_STATION_NAME[1]}"
+            STREAMING_URL="${RADIO_STATION_URL[1]}"
+            break
+            ;;
+        2)
+            echo "→ Selected ${RADIO_STATION_NAME[2]}"
+            STREAMING_URL="${RADIO_STATION_URL[2]}"
+            break
+            ;;
+        3)
+            echo "→ Selected ${RADIO_STATION_NAME[3]}"
+            STREAMING_URL="${RADIO_STATION_URL[3]}"
+            break
+            ;;
+        *) echo "invalid option $REPLY" ;;
         esac
     done
 }
@@ -91,43 +90,42 @@ function selectRadioStation() {
 function handleCallState() {
     if [[ "$1" == "0" ]]; then
         log "Ongoing call detected -> stopping radio"
-        kill ${RADIO_PID} 2> /dev/null
+        kill ${RADIO_PID} 2>/dev/null
     else
         log "No ongoing call detected -> playing radio"
         playRadio
     fi
 }
 
-
 # see https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
-  case $1 in
-    -u|--url)
-      STREAMING_URL="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    -o|--outputdevice)
-      OUTPUT_DEVICE="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    -h|--help)
-      printHelp
-      shift # past argument
-      exit 0
-      ;;
-    -*|--*)
-      echo "Unknown option $1"
-      exit 1
-      ;;
+    case $1 in
+    -u | --url)
+        STREAMING_URL="$2"
+        shift # past argument
+        shift # past value
+        ;;
+    -o | --outputdevice)
+        OUTPUT_DEVICE="$2"
+        shift # past argument
+        shift # past value
+        ;;
+    -h | --help)
+        printHelp
+        shift # past argument
+        exit 0
+        ;;
+    -* | --*)
+        echo "Unknown option $1"
+        exit 1
+        ;;
     *)
-      POSITIONAL_ARGS+=("$1") # save positional arg
-      shift # past argument
-      ;;
-  esac
+        POSITIONAL_ARGS+=("$1") # save positional arg
+        shift                   # past argument
+        ;;
+    esac
 done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
@@ -144,13 +142,12 @@ fi
 
 echo "Press [CTRL+C] to stop playing or monitoring call state"
 
-for (( ; ; ))
-do
+for (( ; ; )); do
     CALL_ONGOING_NOW=$(callOngoing)
     if [[ "${CALL_ONGOING_NOW}" != "${CALL_ONGOING}" ]]; then
         handleCallState "${CALL_ONGOING_NOW}"
     fi
     CALL_ONGOING=${CALL_ONGOING_NOW}
     sleep ${POLLING_INTERVAL_IN_SEC}
-#    log "call ongoing? ${CALL_ONGOING}"
+    #    log "call ongoing? ${CALL_ONGOING}"
 done
